@@ -81,7 +81,8 @@ class Board
       (0...@board_size).each do |col|
         tile = board[row][col]
         unless tile.bombed?
-          tile.value = neighbor_bomb_count(tile).to_s
+          count = neighbor_bomb_count(tile)
+          tile.value = count.to_s if count > 0
         end
       end
     end
@@ -91,6 +92,13 @@ class Board
     board[pos.first][pos.last]
   end
 
+  def set_flag(pos)
+    if tile_at(pos).reveal?
+      return false
+    else
+      tile_at(pos).showed_value = 'F'
+    end
+  end
 
   @@NEIGHBOR_DELTA = {
     0 => [-1, -1],
@@ -131,7 +139,7 @@ class Board
     flag_count
   end
 
-  def reveal(tile)
+  def reveal(tile) #clicks on a tile
     #base case
     if tile.num?
       tile.showed_value = tile.value
@@ -168,14 +176,57 @@ end
 
 class Minesweeper
 
-  def initialize
+  def initialize(mine_count, board_size)
+    @board = Board.new(mine_count, board_size)
+  end
+
+  def run
+    puts "Welcome to my minesweeper,there are #{@board.mine_count} mines!"
+    while true
+      @board.render
+      puts "Where would you like to move(0 0):"
+      user_input = get_valid_input
+
+      if user_input[0] == 'f'
+        pos = [user_input.first, user_input.last]
+        @board.set_flag(pos)
+      else
+        pos = [user_input.first, user_input.last]
+        @board.reveal(@board.tile_at(pos))
+      end
+
+    end
+  end
+
+  def get_valid_input
+    begin
+      parsed_input = []
+      user_input = gets.chomp.split
+      if user_input.first == 'f'
+        parsed_input << 'f'
+        pos = [Integer(user_input[1]), Integer(user_input[2])]
+      else
+        pos = [Integer(user_input[0]), Integer(user_input[1])]
+      end
+      raise '' if !@board.in_bound?(pos)
+    rescue
+      puts "Invalid input, please try again"
+      retry
+    end
+    parsed_input += pos
+  end
+
+  def lost?
 
   end
+
 end
 
 def test
-   b = Board.new(20, 10)
-   b.render
+   # b = Board.new(20, 10)
+   #    b.render
+   m = Minesweeper.new(20,10)
+   m.run
 end
 
 test
