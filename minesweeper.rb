@@ -81,8 +81,7 @@ class Board
       (0...@board_size).each do |col|
         tile = board[row][col]
         unless tile.bombed?
-          count = neighbor_bomb_count(tile)
-          tile.value = count.to_s if count > 0
+          tile.value = neighbor_bomb_count(tile).to_s
         end
       end
     end
@@ -93,7 +92,7 @@ class Board
   end
 
   def set_flag(pos)
-    if tile_at(pos).reveal?
+    if tile_at(pos).revealed?
       return false
     else
       tile_at(pos).showed_value = 'F'
@@ -140,17 +139,24 @@ class Board
   end
 
   def reveal(tile) #clicks on a tile
+
+    return "" if (tile.revealed? || tile.flagged?)
+
     #base case
     if tile.num?
-      tile.showed_value = tile.value
-      return ""
+      if tile.value.to_i == 0
+        tile.showed_value = "_"
+      else
+        tile.showed_value = tile.value
+        return ""
+      end
     end
 
     #bomb
     return "Game Over" if tile.bombed?
 
     #already clicked
-    return "" if (tile.revealed? || tile.flagged?)
+
 
     neighbors(tile).each do |neighbor|
       #will still run reveal even regardless of whether game over
@@ -171,6 +177,15 @@ class Board
     end
   end
 
+  def render_answer
+    (0...@board_size).each do |row|
+      (0...@board_size).each do |col|
+        print board[row][col].value + ' '
+      end
+      print "\n"
+    end
+    print "\n"
+  end
 end
 
 
@@ -183,17 +198,21 @@ class Minesweeper
   def run
     puts "Welcome to my minesweeper,there are #{@board.mine_count} mines!"
     while true
+      print "\e[2J"
+      @board.render_answer
       @board.render
       puts "Where would you like to move(0 0):"
       user_input = get_valid_input
 
       if user_input[0] == 'f'
-        pos = [user_input.first, user_input.last]
+        pos = [user_input[1], user_input[2]]
         @board.set_flag(pos)
       else
         pos = [user_input.first, user_input.last]
-        @board.reveal(@board.tile_at(pos))
+        reveal_returned = @board.reveal(@board.tile_at(pos))
       end
+
+      break if reveal_returned == "Game Over"
 
     end
   end
