@@ -138,9 +138,21 @@ class Board
     flag_count
   end
 
+  def init_memo
+    @memo = Hash.new(false)
+  end
+
   def reveal(tile) #clicks on a tile
 
-    return "" if (tile.revealed? || tile.flagged?)
+    return "" if tile.flagged?
+    if (tile.revealed? && neighbor_flag_count(tile) == tile.value.to_i && tile.value.to_i != 0)
+      neighbors(tile).each do |neighbor|
+        #will still run reveal even regardless of whether game over
+        unless neighbor.revealed?
+          return "Game Over" if reveal(neighbor) == "Game Over"
+        end
+      end
+    end
 
     #base case
     if tile.num?
@@ -157,10 +169,12 @@ class Board
 
     #already clicked
 
-
-    neighbors(tile).each do |neighbor|
-      #will still run reveal even regardless of whether game over
-      return "Game Over" if reveal(neighbor) == "Game Over"
+    if @memo[tile]!= true
+      @memo[tile] = true
+      neighbors(tile).each do |neighbor|
+        #will still run reveal even regardless of whether game over
+        return "Game Over" if reveal(neighbor) == "Game Over"
+      end
     end
   end
 
@@ -209,6 +223,7 @@ class Minesweeper
         @board.set_flag(pos)
       else
         pos = [user_input.first, user_input.last]
+        @board.init_memo
         reveal_returned = @board.reveal(@board.tile_at(pos))
       end
 
