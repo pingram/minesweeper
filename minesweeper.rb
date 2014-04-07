@@ -1,12 +1,12 @@
 class Tile
 
   #position is 2d array
-  attr_accessor :position, :value, :showed_value, :board_size
+  attr_accessor :position, :value, :showed_value
 
-  def initialize(position, value, board_size)
+  def initialize(position, value)
     @position = position
     @value = value
-    @board_size = board_size
+    @showed_value = "*"
   end
 
   def bombed?
@@ -21,7 +21,7 @@ class Tile
     @showed_value != '*'
   end
 
-  def num?
+  def num? # (1..8).cover? self.value.to_i
     begin
       Integer(self.value)
     rescue
@@ -30,8 +30,6 @@ class Tile
     true
   end
 
-
-
   def row
     @position.first
   end
@@ -39,13 +37,61 @@ class Tile
   def col
     @position.last
   end
-
-
 end
 
 
 class Board
-  attr_accessor :board, :board_size
+  attr_accessor :board, :board_size, :mine_count
+
+  def initialize(mine_count, board_size)
+    @board_size = board_size
+    @board = Array.new(@board_size){Array.new(@board_size)}
+
+    place_tiles
+    place_mines
+    increment_tile_counts
+
+  end
+
+  def place_tiles
+    (0...@board_size).each do |row|
+      (0...@board_size).each do |col|
+        @board[row][col] = Tile.new([row, col]," ")
+      end
+    end
+  end
+
+
+  def place_mines
+    r = Random.new
+    mines_remaining = @mine_count
+    until mines_remaining <=0
+      tile = board[r.rand(@board_size)][r.rand(@board_size)]
+      unless tile.bombed?
+        tile.value = 'B'
+        mines_remaning -= 1
+      end
+    end
+  end
+
+  def increment_tile_counts
+    (0...@board_size).each do |row|
+      (0...@board_size).each do |col|
+        tile = board[row][col]
+        unless tile.bombed?
+          tile.value = neighbor_bomb_count(tile).to_s
+        end
+      end
+    end
+  end
+
+
+  def place_mine(tile)
+    if title.bombed?
+      #increment neighbor by 1 if they are not bombed
+    else
+
+  end
 
   def tile_at(pos)
     board[pos.first][pos.last]
@@ -106,6 +152,7 @@ class Board
       #will still run reveal even regardless of whether game over
       return "Game Over" if reveal(neighbor) == "Game Over"
     end
+  end
 
 end
 
@@ -118,6 +165,9 @@ end
 
 class Minesweeper
 
+  def initialize
+
+  end
 end
 
 
