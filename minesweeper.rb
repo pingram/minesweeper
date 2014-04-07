@@ -1,3 +1,5 @@
+require 'debugger'
+
 class Tile
 
   #position is 2d array
@@ -44,13 +46,13 @@ class Board
   attr_accessor :board, :board_size, :mine_count
 
   def initialize(mine_count, board_size)
+    @mine_count = mine_count
     @board_size = board_size
     @board = Array.new(@board_size){Array.new(@board_size)}
 
     place_tiles
     place_mines
     increment_tile_counts
-
   end
 
   def place_tiles
@@ -65,11 +67,11 @@ class Board
   def place_mines
     r = Random.new
     mines_remaining = @mine_count
-    until mines_remaining <=0
+    until mines_remaining <= 0
       tile = board[r.rand(@board_size)][r.rand(@board_size)]
       unless tile.bombed?
         tile.value = 'B'
-        mines_remaning -= 1
+        mines_remaining -= 1
       end
     end
   end
@@ -85,20 +87,12 @@ class Board
     end
   end
 
-
-  def place_mine(tile)
-    if title.bombed?
-      #increment neighbor by 1 if they are not bombed
-    else
-
-  end
-
   def tile_at(pos)
     board[pos.first][pos.last]
   end
 
 
-  NEIGHBOR_DELTA = {
+  @@NEIGHBOR_DELTA = {
     0 => [-1, -1],
     1 => [-1, 0],
     2 => [-1, 1],
@@ -112,16 +106,17 @@ class Board
 
   def neighbors(tile)
     valid_neighbors = []
-    NEIGHBOR_DELTA.each do |_, delta|
+    @@NEIGHBOR_DELTA.each do |_, delta|
       new_pos = [delta.first + tile.row, delta.last + tile.col]
-      valid_neighbors << tile_at(new_pos) if in_bound?(pos, board_size)
+      valid_neighbors << tile_at(new_pos) if in_bound?(new_pos)
     end
     valid_neighbors
   end
 
   def neighbor_bomb_count(tile)
     tile_neighbors = neighbors(tile)
-    tile_neighbors.inject(0) do |bomb_count, neighbor|
+    bomb_count = 0
+    tile_neighbors.each do |neighbor|
       bomb_count += 1  if neighbor.value == 'B'
     end
     bomb_count
@@ -129,7 +124,8 @@ class Board
 
   def neighbor_flag_count(tile)
     tile_neighbors = neighbors(tile)
-    tile_neighbors.inject(0) do |flag_count, neighbor|
+    flag_count = 0
+    tile_neighbors.each do |neighbor|
       flag_count += 1  if neighbor.showed_value == 'F'
     end
     flag_count
@@ -154,10 +150,17 @@ class Board
     end
   end
 
-end
-
   def in_bound?(pos)
     (0...self.board_size).cover?(pos.first) && (0...self.board_size).cover?(pos.last)
+  end
+
+  def render
+    (0...@board_size).each do |row|
+      (0...@board_size).each do |col|
+        print board[row][col].showed_value + ' '
+      end
+      print "\n"
+    end
   end
 
 end
@@ -170,7 +173,9 @@ class Minesweeper
   end
 end
 
-
-class Render
-
+def test
+   b = Board.new(20, 10)
+   b.render
 end
+
+test
