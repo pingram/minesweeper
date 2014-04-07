@@ -21,6 +21,15 @@ class Tile
     @showed_value != '*'
   end
 
+  def num?
+    begin
+      Integer(self.value)
+    rescue
+      return false
+    end
+    true
+  end
+
 
 
   def row
@@ -72,17 +81,33 @@ class Board
     bomb_count
   end
 
+  def neighbor_flag_count(tile)
+    tile_neighbors = neighbors(tile)
+    tile_neighbors.inject(0) do |flag_count, neighbor|
+      flag_count += 1  if neighbor.showed_value == 'F'
+    end
+    flag_count
+  end
+
   def reveal(tile)
-    return "" if (tile.revealed? || tile.flagged?)
-    return "Game Over" if tile.bombed?
-
-
-    neighbors(tile).each do |neighbor|
-      reveal(neighbor)
+    #base case
+    if tile.num?
+      tile.showed_value = tile.value
+      return ""
     end
 
-    # finish writing xxx
-  end
+    #bomb
+    return "Game Over" if tile.bombed?
+
+    #already clicked
+    return "" if (tile.revealed? || tile.flagged?)
+
+    neighbors(tile).each do |neighbor|
+      #will still run reveal even regardless of whether game over
+      return "Game Over" if reveal(neighbor) == "Game Over"
+    end
+
+end
 
   def in_bound?(pos)
     (0...self.board_size).cover?(pos.first) && (0...self.board_size).cover?(pos.last)
