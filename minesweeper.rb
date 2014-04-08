@@ -1,5 +1,6 @@
 require 'debugger'
 require 'colorize'
+require 'yaml'
 
 UNICODE_HASH = {:black_block => "\u25A7",
   :black_flag => "\u2691"}
@@ -252,15 +253,21 @@ class Minesweeper
   end
 
   def run
-    puts "Welcome to my minesweeper,there are #{@board.mine_count} mines!"
+    puts "\nWelcome to my minesweeper,there are #{@board.mine_count} mines!"
+    puts "To save your game, enter 's'. To load a game, enter 'l'\n\n"
     while true
-      print "\e[2J"
+
       @board.render_answer
       @board.render
       puts "Where would you like to move(0 0):"
       user_input = get_valid_input
 
-      if user_input[0] == 'f'
+
+      if user_input[0] == 'l'
+        load
+      elsif user_input[0] == 's'
+        save
+      elsif user_input[0] == 'f'
         pos = [user_input[1], user_input[2]]
         @board.set_flag(pos)
       else
@@ -270,14 +277,29 @@ class Minesweeper
       end
 
       break if reveal_returned == "Game Over"
-
+      print "\e[2J"
     end
+  end
+
+  def save
+    puts "Please enter a filename:"
+    filename = gets.chomp
+    File.open(filename, 'w') do |f|
+      f.puts "#{@board.to_yaml}"
+    end
+  end
+
+  def load
+    puts "Which file would you like to load?"
+    filename = gets.chomp
+    @board = YAML::load(File.read(filename))
   end
 
   def get_valid_input
     begin
       parsed_input = []
       user_input = gets.chomp.split
+      return user_input if (user_input[0] == 'l' || user_input[0] == 's')
       if user_input.first == 'f'
         parsed_input << 'f'
         pos = [Integer(user_input[1]), Integer(user_input[2])]
