@@ -1,4 +1,5 @@
 require 'debugger'
+require 'colorize'
 
 UNICODE_HASH = {:black_block => "\u25A7",
   :black_flag => "\u2691"}
@@ -191,17 +192,49 @@ class Board
     (0...self.board_size).cover?(pos.first) && (0...self.board_size).cover?(pos.last)
   end
 
+  def colorize_output(char)
+    if char == UNICODE_HASH[:black_flag]
+      char.colorize(:light_red)
+    elsif char == UNICODE_HASH[:black_block]
+      char.colorize(:white)
+    elsif char == "1"
+      char.colorize(:blue)
+    elsif char == "2"
+      char.colorize(:green)
+    elsif char == "3"
+      char.colorize(:red)
+    elsif char == "4"
+      char.colorize(:magenta)
+    elsif char == "_"
+      char = " "
+    else
+      return char
+    end
+  end
+
   def render
+    print "  "
+    (0...@board_size).each do |i|
+      print "#{i.to_s.colorize(:white)} "
+    end
+    print "\n"
     (0...@board_size).each do |row|
+      print "#{row.to_s.colorize(:white)} "
       (0...@board_size).each do |col|
-        print board[row][col].showed_value + ' '
+        print colorize_output(board[row][col].showed_value) + ' '
       end
       print "\n"
     end
   end
 
   def render_answer
+    print "  "
+    (0...@board_size).each do |i|
+      print "#{i} "
+    end
+    print "\n"
     (0...@board_size).each do |row|
+      print "#{row} "
       (0...@board_size).each do |col|
         print board[row][col].value + ' '
       end
