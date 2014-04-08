@@ -1,5 +1,8 @@
 require 'debugger'
 
+UNICODE_HASH = {:black_block => "\u25A7",
+  :black_flag => "\u2691"}
+
 class Tile
 
   #position is 2d array
@@ -8,7 +11,7 @@ class Tile
   def initialize(position, value)
     @position = position
     @value = value
-    @showed_value = "*"
+    @showed_value = UNICODE_HASH[:black_block]
   end
 
   def bombed?
@@ -16,11 +19,12 @@ class Tile
   end
 
   def flagged?
-    @showed_value == 'F'
+    @showed_value == UNICODE_HASH[:black_flag]
   end
 
   def revealed?
-    @showed_value != '*'
+    (@showed_value != UNICODE_HASH[:black_block] &&
+    @showed_value != UNICODE_HASH[:black_flag])
   end
 
   def num? # (1..8).cover? self.value.to_i
@@ -65,15 +69,16 @@ class Board
 
 
   def place_mines
-    r = Random.new
-    mines_remaining = @mine_count
-    until mines_remaining <= 0
-      tile = board[r.rand(@board_size)][r.rand(@board_size)]
-      unless tile.bombed?
-        tile.value = 'B'
-        mines_remaining -= 1
-      end
-    end
+    @board.flatten.sample(@mine_count).each { |tile| tile.value = 'B'}
+    # r = Random.new
+    # mines_remaining = @mine_count
+    # until mines_remaining <= 0
+    #   tile = board[r.rand(@board_size)][r.rand(@board_size)]
+    #   unless tile.bombed?
+    #     tile.value = 'B'
+    #     mines_remaining -= 1
+    #   end
+    # end
   end
 
   def increment_tile_counts
@@ -92,10 +97,14 @@ class Board
   end
 
   def set_flag(pos)
+    # debugger
+
     if tile_at(pos).revealed?
       return false
+    elsif tile_at(pos).showed_value == UNICODE_HASH[:black_flag]
+      tile_at(pos).showed_value = UNICODE_HASH[:black_block]
     else
-      tile_at(pos).showed_value = 'F'
+      tile_at(pos).showed_value = UNICODE_HASH[:black_flag]
     end
   end
 
@@ -133,7 +142,7 @@ class Board
     tile_neighbors = neighbors(tile)
     flag_count = 0
     tile_neighbors.each do |neighbor|
-      flag_count += 1  if neighbor.showed_value == 'F'
+      flag_count += 1  if neighbor.showed_value == UNICODE_HASH[:black_flag]
     end
     flag_count
   end
