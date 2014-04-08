@@ -276,8 +276,23 @@ class Minesweeper
         reveal_returned = @board.reveal(@board.tile_at(pos))
       end
 
+      if won?
+        @board.render
+        puts "Congratualation! You Won!"
+        break
+      end
+
       break if reveal_returned == "Game Over"
       print "\e[2J"
+    end
+  end
+
+  def won?
+    (0...@board.board_size).each do |row|
+      (0...@board.board_size).each do |col|
+        tile = @board.tile_at([row,col])
+        return false if (!tile.revealed?) && tile.num?
+      end
     end
   end
 
@@ -323,7 +338,7 @@ end
 def test
    # b = Board.new(20, 10)
    #    b.render
-   m = Minesweeper.new(20,10)
+   m = Minesweeper.new(2,10)
    m.run
 end
 
